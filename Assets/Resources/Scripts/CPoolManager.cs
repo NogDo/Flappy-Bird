@@ -5,11 +5,18 @@ using UnityEngine;
 public class CPoolManager : MonoBehaviour
 {
     #region 전역 변수
-    [SerializeField]
+    [SerializeField, Header("땅")]
     private CObjectPool groundPool;
-    [SerializeField]
+    [SerializeField, Header("기둥")]
     private CObjectPool pillarPool;
+    [SerializeField]
+    private float fPillarSpawnTime;
+    [SerializeField, Header("플레이어")]
+    private CCharacterMove charcter;
 
+    private IEnumerator spawnGround;
+    private IEnumerator spawnPillar;
+    private IEnumerator playerDeadCheck;
     private bool isStartSpawn = false;
     #endregion
 
@@ -17,7 +24,13 @@ public class CPoolManager : MonoBehaviour
     {
         if (!isStartSpawn)
         {
-            StartCoroutine(SpawnGround());
+            spawnGround = SpawnGround();
+            spawnPillar = SpawnPillar();
+            playerDeadCheck = PlayerDeadCheck();
+
+            StartCoroutine(spawnGround);
+            StartCoroutine(spawnPillar);
+            StartCoroutine(playerDeadCheck);
 
             isStartSpawn = true;
         }
@@ -28,8 +41,7 @@ public class CPoolManager : MonoBehaviour
         while (true)
         {
             groundPool.SpawnObject();
-
-            yield return new WaitUntil(() => groundPool.GetNowGameObject().GetComponent<CGroundMove>().IsMiddle);
+            yield return new WaitUntil(() => groundPool.GetNowGameObject().GetComponent<CGroundMove>().IsEnd);
         }
     }
 
@@ -38,8 +50,31 @@ public class CPoolManager : MonoBehaviour
         while (true)
         {
             pillarPool.SpawnObject();
+            yield return new WaitForSeconds(fPillarSpawnTime);
+        }
+    }
 
+    IEnumerator PlayerDeadCheck()
+    {
+        yield return new WaitUntil(() => charcter.IsDie);
 
+        StopCoroutine(spawnGround);
+        StopCoroutine(spawnPillar);
+
+        for (int i = 0; i < groundPool.GetObjectPool().Count; ++i)
+        {
+            if (groundPool.GetObjectPool()[i].activeSelf)
+            {
+                groundPool.GetObjectPool()[i].GetComponent<CGroundMove>().StopMove();
+            }
+        }
+
+        for (int i = 0; i < pillarPool.GetObjectPool().Count; ++i)
+        {
+            if (pillarPool.GetObjectPool()[i].activeSelf)
+            {
+                pillarPool.GetObjectPool()[i].GetComponent<CPillarMove>().StopMove();
+            }
         }
     }
 }

@@ -6,28 +6,59 @@ public class CCharacterMove : MonoBehaviour
 {
     #region 전역 변수
     private Rigidbody2D rb2_Character = null;
+    private Animator animator = null;
 
     [SerializeField]
     private float fJumpPower;
+
+    private bool isDie = false;
+
+    public bool IsDie
+    {
+        get
+        {
+            return isDie;
+        }
+
+        private set
+        {
+            isDie = value;
+        }
+    }
     #endregion
 
     void Awake()
     {
         rb2_Character = this.gameObject.GetComponent<Rigidbody2D>();
+        animator = this.gameObject.GetComponent<Animator>();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!isDie)
         {
-            rb2_Character.velocity = Vector2.zero;
-            rb2_Character.AddForce(Vector2.up * fJumpPower);
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                rb2_Character.velocity = Vector2.zero;
+                rb2_Character.AddForce(Vector2.up * fJumpPower);
+            }
         }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        //Debug.Log("게임 종료");
-        //Time.timeScale = 0;
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isDie = true;
+            animator.SetBool("Die", true);
+            rb2_Character.bodyType = RigidbodyType2D.Static;
+        }
+
+        else if (collision.gameObject.CompareTag("Pillar"))
+        {
+            isDie = true;
+            animator.SetBool("Die", true);
+            rb2_Character.bodyType = RigidbodyType2D.Static;
+        }
     }
 }

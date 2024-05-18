@@ -6,32 +6,54 @@ public class CGroundMove : MonoBehaviour
 {
     #region 전역 변수
     private IEnumerator iMove;
+    private IEnumerator iStop;
     private UnityEngine.Coroutine coroutineGroundMove;
     [SerializeField]
     private RectTransform rectTransform;
+    [SerializeField]
+    private float fMoveSpeed;
 
-    private bool isMiddle = false;
     private bool isEnd = false;
 
-    public bool IsMiddle
+    public IEnumerator IMove
     {
         get
         {
-            return isMiddle;
+            return iMove;
         }
 
         private set
         {
-            isMiddle = value;
+            iMove = value;
+        }
+    }
+
+    public bool IsEnd
+    {
+        get
+        {
+            return isEnd;
+        }
+
+        private set
+        {
+            isEnd = value;
         }
     }
     #endregion
 
+    void Awake()
+    {
+        rectTransform.localPosition = new Vector3(480, 0);
+    }
+
     void OnEnable()
     {
-        iMove = Move();
-        coroutineGroundMove = StartCoroutine(iMove);
         rectTransform.localPosition = new Vector3(480, 0);
+
+        iMove = Move();
+        iStop = Stop();
+        coroutineGroundMove = StartCoroutine(iMove);
     }
 
     void OnDisable()
@@ -41,29 +63,26 @@ public class CGroundMove : MonoBehaviour
 
     IEnumerator Move()
     {
-        StartCoroutine(CheckMiddle());
-        StartCoroutine(Stop());
+        StartCoroutine(iStop);
 
         while (!isEnd)
         {
-            rectTransform.Translate(Vector2.left * 50.0f * Time.deltaTime);
+            rectTransform.Translate(Vector2.left * fMoveSpeed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
 
         gameObject.SetActive(false);
-        IsMiddle = false;
         isEnd = false;
-    }
-
-    IEnumerator CheckMiddle()
-    {
-        yield return new WaitUntil(() => rectTransform.localPosition.x <= 0);
-        isMiddle = true;
     }
 
     IEnumerator Stop()
     {
-        yield return new WaitUntil(() => rectTransform.localPosition.x <= -480);
+        yield return new WaitUntil(() => rectTransform.localPosition.x <= 0);
         isEnd = true;
+    }
+
+    public void StopMove()
+    {
+        StopCoroutine(iMove);
     }
 }

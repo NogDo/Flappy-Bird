@@ -7,12 +7,12 @@ public class CObjectPool : MonoBehaviour
     #region 전역 변수
     private List<GameObject> objectPool;
     private int nPointer;
+    private int nNowIndex = -1;
 
     [SerializeField]
     private GameObject objPooled;
     [SerializeField]
     private int nObjectCount;
-    private int nNowIndex = 0;
     #endregion
 
     void Start()
@@ -22,11 +22,11 @@ public class CObjectPool : MonoBehaviour
 
         for (int i = 0; i < nObjectCount; i++)
         {
-            objPooled = Instantiate(objPooled, Vector3.zero, Quaternion.identity);
-            objPooled.SetActive(false);
-            objPooled.transform.parent = transform;
+            GameObject obj = Instantiate(objPooled, Vector3.zero, Quaternion.identity);
+            obj.SetActive(false);
+            obj.transform.SetParent(transform);
 
-            objectPool.Add(objPooled);
+            objectPool.Add(obj);
         }
     }
 
@@ -46,7 +46,7 @@ public class CObjectPool : MonoBehaviour
         }
 
         nNowIndex++;
-        if (nNowIndex > 2)
+        if (nNowIndex >= nObjectCount)
         {
             nNowIndex = 0;
         }
@@ -55,5 +55,10 @@ public class CObjectPool : MonoBehaviour
     public GameObject GetNowGameObject()
     {
         return objectPool[nNowIndex];
+    }
+
+    public List<GameObject> GetObjectPool()
+    {
+        return objectPool;
     }
 }
